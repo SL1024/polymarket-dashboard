@@ -19,6 +19,7 @@ class DataStore {
             if (!this.data.find(item => item.address.toLowerCase() === addr.toLowerCase())) {
                 this.data.push({
                     address: addr,
+                    username: '',
                     note: '',
                     txCount: 0,
                     totalVolume: 0,
@@ -208,8 +209,10 @@ class UIController {
         this.selectAllCheckbox = document.getElementById('selectAll');
         this.addModal = document.getElementById('addModal');
         this.editModal = document.getElementById('editModal');
+        this.editUsernameModal = document.getElementById('editUsernameModal');
         this.addressInput = document.getElementById('addressInput');
         this.editNoteInput = document.getElementById('editNoteInput');
+        this.editUsernameInput = document.getElementById('editUsernameInput');
     }
 
     bindEvents() {
@@ -247,6 +250,11 @@ class UIController {
         // 确认编辑
         document.getElementById('confirmEditBtn').addEventListener('click', () => {
             this.handleEditNote();
+        });
+
+        // 确认编辑用户名
+        document.getElementById('confirmEditUsernameBtn').addEventListener('click', () => {
+            this.handleEditUsername();
         });
 
         // 刷新选中
@@ -300,6 +308,15 @@ class UIController {
         const note = this.editNoteInput.value.trim();
         this.dataStore.updateAddress(this.currentEditAddress, { note });
         this.editModal.classList.remove('show');
+        this.render();
+    }
+
+    handleEditUsername() {
+        if (!this.currentEditAddress) return;
+        
+        const username = this.editUsernameInput.value.trim();
+        this.dataStore.updateAddress(this.currentEditAddress, { username });
+        this.editUsernameModal.classList.remove('show');
         this.render();
     }
 
@@ -403,7 +420,7 @@ class UIController {
         if (data.length === 0) {
             this.tableBody.innerHTML = `
                 <tr>
-                    <td colspan="18" class="empty-state">
+                    <td colspan="16" class="empty-state">
                         <i class="fas fa-folder-open"></i>
                         <p>暂无数据</p>
                         <div class="empty-hint">点击下方"批量添加地址"按钮开始使用</div>
@@ -426,6 +443,13 @@ class UIController {
                 </td>
                 <td style="text-align: left;">
                     <div class="address-cell">
+                        <span class="address-text" onclick="ui.showEditUsernameModal('${item.address}')" style="cursor: pointer;" title="点击编辑用户名">
+                            ${item.username || '未设置'}
+                        </span>
+                    </div>
+                </td>
+                <td style="text-align: left;">
+                    <div class="address-cell">
                         <span class="address-text" title="${item.address}">
                             ${this.formatAddress(item.address)}
                         </span>
@@ -434,14 +458,11 @@ class UIController {
                 </td>
                 <td>${item.loading ? '<span class="loading-spinner"></span>' : item.txCount}</td>
                 <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
                 <td>${item.loading ? '-' : '$' + this.formatNumber(item.totalVolume)}</td>
                 <td class="${this.getPnlClass(item.pnl)}">
                     ${item.loading ? '-' : (parseFloat(item.pnl) >= 0 ? '+' : '') + '$' + this.formatNumber(item.pnl)}
                 </td>
-                <td>${item.loading ? '-' : '$' + this.formatNumber(item.balance)}</td>
+                <td>${item.loading ? '-' : (item.balance && item.balance !== '0.00' ? '$' + this.formatNumber(item.balance) : '-')}</td>
                 <td>${item.loading ? '-' : item.categories}</td>
                 <td>${item.loading ? '-' : item.dayActive}</td>
                 <td>${item.loading ? '-' : item.weekActive}</td>
@@ -468,6 +489,13 @@ class UIController {
         const item = this.dataStore.getData().find(d => d.address === address);
         this.editNoteInput.value = item ? item.note : '';
         this.editModal.classList.add('show');
+    }
+
+    showEditUsernameModal(address) {
+        this.currentEditAddress = address;
+        const item = this.dataStore.getData().find(d => d.address === address);
+        this.editUsernameInput.value = item ? item.username : '';
+        this.editUsernameModal.classList.add('show');
     }
 
     updateLastTxDays() {

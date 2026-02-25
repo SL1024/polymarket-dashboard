@@ -19,8 +19,7 @@
         <!-- 顶部标签栏 -->
         <div class="tabs-header">
             <div class="tab active" data-tab="polymarket">
-                <span class="tab-icon">🔷</span>
-                <span class="tab-label">Polymarket</span>
+                <span class="tab-label">Polymarket仪表盘</span>
             </div>
         </div>
 
@@ -36,11 +35,9 @@
                             </th>
                             <th class="col-number bg-blue">#</th>
                             <th class="col-edit bg-blue">编辑</th>
+                            <th class="col-username bg-blue">用户名</th>
                             <th class="col-address bg-blue">地址</th>
                             <th class="col-tx bg-purple">Tx</th>
-                            <th class="col-eth bg-purple">ETH</th>
-                            <th class="col-tx bg-purple">Tx</th>
-                            <th class="col-eth bg-purple">ETH</th>
                             <th class="col-usdc bg-purple">USDC</th>
                             <th class="col-amount bg-purple">交易金额</th>
                             <th class="col-pnl bg-purple">盈亏</th>
@@ -94,7 +91,24 @@
         </div>
     </div>
 
-    <!-- 编辑地址弹窗 -->
+    <!-- 编辑用户名弹窗 -->
+    <div id="editUsernameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑用户名</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="editUsernameInput" placeholder="输入用户名">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel">取消</button>
+                <button class="btn btn-confirm" id="confirmEditUsernameBtn">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑地址备注弹窗 -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
