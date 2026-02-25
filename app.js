@@ -24,7 +24,8 @@ class DataStore {
                     txCount: 0,
                     totalVolume: 0,
                     pnl: 0,
-                    balance: 0,
+                    positionValue: 0,  // 持仓价值（从 /value）
+                    balance: 0,         // 余额（从 /positions 计算）
                     categories: 0,
                     dayActive: 0,
                     weekActive: 0,
@@ -69,109 +70,125 @@ class PolymarketAPI {
 
     async fetchUserData(address) {
         try {
-            const trades = await this.fetchTrades(address);
-            const balance = await this.fetchBalance(address);
-            const markets = await this.fetchUserMarkets(address);
+            // 并行获取所有数据
+            const [positions, activity, positionValue] = await Promise.all([
+                this.fetchPositions(address),
+                this.fetchActivity(address),
+                this.fetchPositionValue(address)
+            ]);
             
-            return this.calculateStats(trades, balance, markets);
+            return this.calculateStats(positions, activity, positionValue);
         } catch (error) {
             console.error('获取数据失败:', error);
             throw error;
         }
     }
 
-    async fetchTrades(address) {
+    async fetchPositions(address) {
         try {
-            const response = await fetch(`${this.dataAPI}/trades?user=${address.toLowerCase()}`);
+            const response = await fetch(`${this.dataAPI}/positions?user=${address.toLowerCase()}`);
             if (!response.ok) {
-                console.warn('获取交易数据失败');
+                console.warn('获取持仓数据失败');
                 return [];
             }
             const data = await response.json();
             return Array.isArray(data) ? data : [];
         } catch (error) {
-            console.error('fetchTrades error:', error);
+            console.error('fetchPositions error:', error);
             return [];
         }
     }
 
-    async fetchBalance(address) {
+    async fetchActivity(address) {
+        try {
+            // 获取最近500条活动记录
+            const response = await fetch(`${this.dataAPI}/activity?user=${address.toLowerCase()}&limit=500`);
+            if (!response.ok) {
+                console.warn('获取活动数据失败');
+                return [];
+            }
+            const data = await response.json();
+            return Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('fetchActivity error:', error);
+            return [];
+        }
+    }
+
+    async fetchPositionValue(address) {
         try {
             const response = await fetch(`${this.dataAPI}/value?user=${address.toLowerCase()}`);
             if (!response.ok) {
+                console.warn('获取持仓价值失败');
                 return { value: 0 };
             }
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('fetchBalance error:', error);
+            console.error('fetchPositionValue error:', error);
             return { value: 0 };
         }
     }
 
-    async fetchUserMarkets(address) {
-        try {
-            const response = await fetch(`${this.dataAPI}/markets?user=${address.toLowerCase()}`);
-            if (!response.ok) {
-                return [];
-            }
-            const data = await response.json();
-            return Array.isArray(data) ? data : [];
-        } catch (error) {
-            console.error('fetchUserMarkets error:', error);
-            return [];
-        }
-    }
-
-    calculateStats(trades, balance, markets) {
+    calculateStats(positions, activity, positionValue) {
         const now = new Date();
         const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
         const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
         const oneMonthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
 
+        // 计算余额（从 positions 计算总价值）
+        let balance = 0;
+        const categories = new Set();
+        
+        positions.forEach(pos => {
+            balance += parseFloat(pos.currentValue || 0);
+            if (pos.eventSlug) {
+                // 从 eventSlug 提取分类（简化处理）
+                categories.add(pos.eventSlug.split('-')[0]);
+            }
+        });
+
+        // 持仓价值（从 /value API）
+        const posValue = parseFloat(positionValue.value || 0);
+
+        // 统计交易和活动数据
         let totalVolume = 0;
         let pnl = 0;
         let dayActive = 0;
         let weekActive = 0;
         let monthActive = 0;
         let lastTxDate = null;
-        const categories = new Set();
+        let txCount = 0;
 
-        trades.forEach(trade => {
-            const timestamp = trade.timestamp || trade.created_at || trade.time;
+        activity.forEach(act => {
+            const timestamp = act.timestamp;
             if (!timestamp) return;
 
-            const tradeDate = new Date(timestamp);
-            const amount = parseFloat(trade.size || trade.amount || 0);
-            const price = parseFloat(trade.price || 0);
-            totalVolume += amount * price;
+            const actDate = new Date(timestamp * 1000); // 转换为毫秒
 
-            if (trade.pnl !== undefined) {
-                pnl += parseFloat(trade.pnl);
+            // 只统计交易类型
+            if (act.type === 'TRADE') {
+                txCount++;
+                
+                // 计算交易金额
+                const usdcSize = parseFloat(act.usdcSize || 0);
+                totalVolume += usdcSize;
+
+                // 统计活跃度
+                if (actDate > oneDayAgo) dayActive++;
+                if (actDate > oneWeekAgo) weekActive++;
+                if (actDate > oneMonthAgo) monthActive++;
             }
 
-            if (trade.market_slug || trade.market) {
-                const marketInfo = markets.find(m => 
-                    m.slug === trade.market_slug || m.id === trade.market
-                );
-                if (marketInfo && marketInfo.category) {
-                    categories.add(marketInfo.category);
-                }
-            }
-
-            if (tradeDate > oneDayAgo) dayActive++;
-            if (tradeDate > oneWeekAgo) weekActive++;
-            if (tradeDate > oneMonthAgo) monthActive++;
-
-            if (!lastTxDate || tradeDate > lastTxDate) {
-                lastTxDate = tradeDate;
+            // 记录最后活动时间（包括所有类型）
+            if (!lastTxDate || actDate > lastTxDate) {
+                lastTxDate = actDate;
             }
         });
 
-        markets.forEach(market => {
-            if (market.category) {
-                categories.add(market.category);
-            }
+        // 计算盈亏（从持仓数据）
+        positions.forEach(pos => {
+            pnl += parseFloat(pos.cashPnl || 0);
         });
 
         const lastTxDays = lastTxDate 
@@ -179,10 +196,11 @@ class PolymarketAPI {
             : '-';
 
         return {
-            txCount: trades.length,
+            txCount: txCount,
             totalVolume: totalVolume.toFixed(2),
             pnl: pnl.toFixed(2),
-            balance: (balance.value || balance.total || 0).toFixed(2),
+            positionValue: posValue.toFixed(2),  // 持仓（/value）
+            balance: balance.toFixed(2),          // 余额（/positions 计算）
             categories: categories.size,
             dayActive,
             weekActive,
@@ -420,7 +438,7 @@ class UIController {
         if (data.length === 0) {
             this.tableBody.innerHTML = `
                 <tr>
-                    <td colspan="16" class="empty-state">
+                    <td colspan="17" class="empty-state">
                         <i class="fas fa-folder-open"></i>
                         <p>暂无数据</p>
                         <div class="empty-hint">点击下方"批量添加地址"按钮开始使用</div>
@@ -462,6 +480,7 @@ class UIController {
                 <td class="${this.getPnlClass(item.pnl)}">
                     ${item.loading ? '-' : (parseFloat(item.pnl) >= 0 ? '+' : '') + '$' + this.formatNumber(item.pnl)}
                 </td>
+                <td>${item.loading ? '-' : (item.positionValue && item.positionValue !== '0.00' ? '$' + this.formatNumber(item.positionValue) : '-')}</td>
                 <td>${item.loading ? '-' : (item.balance && item.balance !== '0.00' ? '$' + this.formatNumber(item.balance) : '-')}</td>
                 <td>${item.loading ? '-' : item.categories}</td>
                 <td>${item.loading ? '-' : item.dayActive}</td>
