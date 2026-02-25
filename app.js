@@ -404,8 +404,9 @@ class UIController {
             this.tableBody.innerHTML = `
                 <tr>
                     <td colspan="18" class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>暂无数据，点击"批量添加地址"开始使用</p>
+                        <i class="fas fa-folder-open"></i>
+                        <p>暂无数据</p>
+                        <div class="empty-hint">点击下方"批量添加地址"按钮开始使用</div>
                     </td>
                 </tr>
             `;
@@ -423,12 +424,12 @@ class UIController {
                         <i class="fas fa-edit"></i>
                     </button>
                 </td>
-                <td>
+                <td style="text-align: left;">
                     <div class="address-cell">
                         <span class="address-text" title="${item.address}">
                             ${this.formatAddress(item.address)}
                         </span>
-                        ${item.note ? `<span class="address-note">(${item.note})</span>` : ''}
+                        ${item.note ? `<span class="address-note">${item.note}</span>` : ''}
                     </div>
                 </td>
                 <td>${item.loading ? '<span class="loading-spinner"></span>' : item.txCount}</td>
@@ -438,7 +439,7 @@ class UIController {
                 <td>-</td>
                 <td>${item.loading ? '-' : '$' + this.formatNumber(item.totalVolume)}</td>
                 <td class="${this.getPnlClass(item.pnl)}">
-                    ${item.loading ? '-' : '$' + this.formatNumber(item.pnl)}
+                    ${item.loading ? '-' : (parseFloat(item.pnl) >= 0 ? '+' : '') + '$' + this.formatNumber(item.pnl)}
                 </td>
                 <td>${item.loading ? '-' : '$' + this.formatNumber(item.balance)}</td>
                 <td>${item.loading ? '-' : item.categories}</td>

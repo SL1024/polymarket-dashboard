@@ -10,10 +10,16 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- 顶部通知栏 -->
+        <div class="notice-bar">
+            <span class="notice-icon">📢</span>
+            <span class="notice-text">获取调整中：1.去掉回归中，2.交易总计功能，字体可以以当前颜色为准，如你有更好的建议可以提出</span>
+        </div>
+
         <!-- 顶部标签栏 -->
         <div class="tabs-header">
             <div class="tab active" data-tab="polymarket">
-                <span class="tab-icon">📊</span>
+                <span class="tab-icon">🔷</span>
                 <span class="tab-label">Polymarket</span>
             </div>
         </div>
@@ -25,26 +31,26 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th class="col-checkbox">
+                            <th class="col-checkbox bg-blue">
                                 <input type="checkbox" id="selectAll">
                             </th>
-                            <th class="col-number">#</th>
-                            <th class="col-edit">编辑</th>
-                            <th class="col-address">地址</th>
-                            <th class="col-tx">Tx</th>
-                            <th class="col-eth">ETH</th>
-                            <th class="col-tx">Tx</th>
-                            <th class="col-eth">ETH</th>
-                            <th class="col-usdc">USDC</th>
-                            <th class="col-amount">交易金额</th>
-                            <th class="col-pnl">盈亏</th>
-                            <th class="col-balance">账户余额</th>
-                            <th class="col-categories">板块</th>
-                            <th class="col-active">天</th>
-                            <th class="col-active">周</th>
-                            <th class="col-active">月</th>
-                            <th class="col-last">最后交易</th>
-                            <th class="col-actions">操作</th>
+                            <th class="col-number bg-blue">#</th>
+                            <th class="col-edit bg-blue">编辑</th>
+                            <th class="col-address bg-blue">地址</th>
+                            <th class="col-tx bg-purple">Tx</th>
+                            <th class="col-eth bg-purple">ETH</th>
+                            <th class="col-tx bg-purple">Tx</th>
+                            <th class="col-eth bg-purple">ETH</th>
+                            <th class="col-usdc bg-purple">USDC</th>
+                            <th class="col-amount bg-purple">交易金额</th>
+                            <th class="col-pnl bg-purple">盈亏</th>
+                            <th class="col-balance bg-purple">账户余额</th>
+                            <th class="col-categories bg-purple">板块</th>
+                            <th class="col-active bg-purple">天</th>
+                            <th class="col-active bg-purple">周</th>
+                            <th class="col-active bg-purple">月</th>
+                            <th class="col-last bg-purple">最后交易</th>
+                            <th class="col-actions bg-purple">操作</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
