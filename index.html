@@ -5,50 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Polymarket 账户统计</title>
     <link rel="stylesheet" href="style.css">
+    <!-- 引入图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Polymarket 账户交易统计</h1>
-        
-        <div class="controls">
-            <button id="addAddressBtn" class="btn btn-primary">批量添加地址</button>
-            <button id="refreshSelectedBtn" class="btn btn-secondary">刷新选中</button>
-            <button id="deleteSelectedBtn" class="btn btn-danger">删除选中</button>
+    <div class="app-container">
+        <!-- 顶部标签栏 -->
+        <div class="tabs-header">
+            <div class="tab active" data-tab="polymarket">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Polymarket</span>
+            </div>
         </div>
 
-        <div class="table-container">
-            <table id="dataTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAll"></th>
-                        <th>序号</th>
-                        <th>地址</th>
-                        <th>交易次数</th>
-                        <th>交易金额</th>
-                        <th>盈亏金额</th>
-                        <th>账户金额</th>
-                        <th>板块数量</th>
-                        <th>天活跃</th>
-                        <th>周活跃</th>
-                        <th>月活跃</th>
-                        <th>最后交易</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- 数据行将动态插入 -->
-                </tbody>
-            </table>
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 表格区域 -->
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th class="col-number">#</th>
+                            <th class="col-edit">编辑</th>
+                            <th class="col-address">地址</th>
+                            <th class="col-tx">Tx</th>
+                            <th class="col-eth">ETH</th>
+                            <th class="col-tx">Tx</th>
+                            <th class="col-eth">ETH</th>
+                            <th class="col-usdc">USDC</th>
+                            <th class="col-amount">交易金额</th>
+                            <th class="col-pnl">盈亏</th>
+                            <th class="col-balance">账户余额</th>
+                            <th class="col-categories">板块</th>
+                            <th class="col-active">天</th>
+                            <th class="col-active">周</th>
+                            <th class="col-active">月</th>
+                            <th class="col-last">最后交易</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 数据行将通过 JS 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 底部操作栏 -->
+            <div class="bottom-actions">
+                <button class="action-btn btn-add" id="addAddressBtn">
+                    <i class="fas fa-plus"></i> 批量添加地址
+                </button>
+                <button class="action-btn btn-refresh" id="refreshSelectedBtn">
+                    <i class="fas fa-sync-alt"></i> 刷新选中地址
+                </button>
+                <button class="action-btn btn-delete" id="deleteSelectedBtn">
+                    <i class="fas fa-trash"></i> 删除选中地址
+                </button>
+                <button class="action-btn btn-export" id="exportBtn">
+                    <i class="fas fa-download"></i> 导出数据
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- 添加地址弹窗 -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>批量添加地址</h2>
-            <textarea id="addressInput" placeholder="请输入地址，每行一个"></textarea>
-            <button id="confirmAddBtn" class="btn btn-primary">确认添加</button>
+            <div class="modal-header">
+                <h3>批量添加地址</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <textarea id="addressInput" placeholder="请输入 Polymarket 地址，每行一个&#10;&#10;示例：&#10;0x1234567890123456789012345678901234567890&#10;0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="cancelAddBtn">取消</button>
+                <button class="btn btn-confirm" id="confirmAddBtn">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑地址弹窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑地址备注</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="editNoteInput" placeholder="输入备注名称">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel">取消</button>
+                <button class="btn btn-confirm" id="confirmEditBtn">确认</button>
+            </div>
         </div>
     </div>
 
